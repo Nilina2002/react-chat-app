@@ -1,4 +1,7 @@
 .chatList {
+  flex: 1;
+  overflow: scroll;
+
   .search {
     display: flex;
     align-items: center;
@@ -10,8 +13,8 @@
       background-color: rgba(17, 25, 40, 0.5);
       display: flex;
       align-items: center;
-      border-radius: 10px;
       gap: 20px;
+      border-radius: 10px;
       padding: 10px;
 
       input {
@@ -45,5 +48,42 @@
     padding: 20px;
     cursor: pointer;
     border-bottom: 1px solid #dddddd35;
+
+    img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .texts {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      span {
+        font-weight: 500;
+      }
+
+      p {
+        font-size: 14px;
+        font-weight: 300;
+      }
+    }
   }
+}
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  /* box-shadow: inset 0 0 5px grey; */
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #dddddd35;
+  border-radius: 10px;
 }
