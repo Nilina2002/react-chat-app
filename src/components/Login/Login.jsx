@@ -1,6 +1,9 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import "./Login.css";
 import { toast } from "react-toastify";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const Login = () => {
   const [avatar, setAvatar] = useState({
@@ -21,6 +24,31 @@ const Login = () => {
     e.preventDefault();
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const { email, password } = Object.fromEntries(formData);
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+
+      await setDoc(doc(db, "users", res.user.uid), {
+        username,
+        email,
+        id: res.user.uid,
+        blocked: [],
+      });
+
+      await setDoc(doc(db, "userchats", res.user.uid), {
+        chats: [],
+      });
+
+      toast.success("Account created successfully");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
+  };
+
   return (
     <div className="login">
       <div className="item">
@@ -34,7 +62,7 @@ const Login = () => {
       <div className="seperator"></div>
       <div className="item">
         <h2>Create an Account</h2>
-        <form action="">
+        <form onSubmit={handleRegister}>
           <label htmlFor="file">
             <img src={avatar.url || "./avatar.png"} alt="" />
             Upload an image
