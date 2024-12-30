@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import List from "./components/list/list";
 import Chat from "./components/chat/chat";
-import Details from "./components/details/details";
+import Details from "./components/details/Details";
 import Login from "./components/Login/Login";
 import Notification from "./components/Notification/Notification";
 import { onAuthStateChanged } from "firebase/auth";
