@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./chat.css";
 import EmojiPicker from "emoji-picker-react";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useUserStore } from "../../lib/userStore";
 import { useChatStore } from "../../lib/chatStore";
@@ -10,6 +10,11 @@ const Chat = () => {
   const [chat, setChat] = useState();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+  const [img, setImg] = useState({
+    file: null,
+    url: "",
+  });
+
   const { currentUser } = useUserStore();
   const { chatId } = useChatStore();
 
@@ -36,19 +41,38 @@ const Chat = () => {
     setOpen(false);
   };
 
+  const handleImg = (e) => {
+    if (e.target.files[0]) {
+      setImg({
+        file: e.target.files[0],
+        url: URL.createObjectURL(e.target.files[0]),
+      });
+    }
+  };
+
   const handleSend = async () => {
     if (text === "") return;
+    let imgUrl = null;
+
 
     try {
+      if (img.file) {
+        imgUrl = await upload (img.file);
+      }
       await updateDoc(doc(db, "chats", chatId), {
         messages: arrayUnion({
           senderId: currentUser.id,
           text: text,
           createAt: new Date(),
+          ...(imgUrl && { img: imgUrl }),
         }),
       });
 
-      const userChatsRef = doc(db, "userchats", currentUser.id);
+      const user = { id: "someUserId" }; // Define the user variable
+      const userIDS = [currentUser.id, user.id];
+
+      userIDS.forEach(async (id) => {
+      const userChatsRef = doc(db, "userchats", id);
       const userChatsSnapshot = await getDoc(userChatsRef);
 
       if (userChatsSnapshot.exists()) {
@@ -56,17 +80,24 @@ const Chat = () => {
         const chatIndex = userChatsData.chats.findIndex(
           (c) => c.chatId === chatId
         );
-        userChatsData[chatIndex].lastMessage = text;
-        userChatsData[chatIndex].isSeen = true;
-        userChatsData[chatIndex].updatedAt = Date.now();
+        userChatsData.chats[chatIndex].lastMessage = text;
+        userChatsData.chats[chatIndex].isSeen = id === currentUser.id ? true : false;
+        userChatsData.chats[chatIndex].updatedAt = Date.now();
 
         await updateDoc(userChatsRef, {
           chats: userChatsData.chats,
         });
       }
+    });
     } catch (error) {
       console.log(error);
     }
+
+  setImg({
+    file: null,
+    url: "",
+  });
+  setText("");
   };
 
   return (
@@ -99,7 +130,12 @@ const Chat = () => {
             </div>
           </div>
         ))}
-
+        <div className="message own">
+          <div className="texts">
+            {img.url && <img src={img.url} alt="" />}
+            
+          </div>
+        </div>
         <div ref={endRef}></div>
       </div>
       <div className="bottom">
@@ -107,7 +143,7 @@ const Chat = () => {
           <label htmlFor="file">
             <img src="./img.png" alt="" />
           </label>
-          <input type="file" id="file" style={{ display: "none" }} />
+          <input type="file" id="file" style={{ display: "none" }} onChange={handleImg}/>
           <img src="./camera.png" alt="" />
           <img src="./mic.png" alt="" />
         </div>
