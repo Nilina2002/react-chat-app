@@ -16,7 +16,7 @@ const Chat = () => {
   });
 
   const { currentUser } = useUserStore();
-  const { chatId } = useChatStore();
+  const { chatId,user, isRecieverBlocked, isCurrentUserBlocked } = useChatStore();
 
   const endRef = useRef(null);
 
@@ -104,8 +104,9 @@ const Chat = () => {
     <div className="chat">
       <div className="top">
         <div className="user">
+          <img src={user.avatar || "./avatar.png"} alt="" />
           <div className="texts">
-            <span>Charitha</span>
+            <span>{user?.username}</span>
             <p>Lorem ipsum dolor, sit amet.</p>
           </div>
         </div>
@@ -117,7 +118,7 @@ const Chat = () => {
       </div>
       <div className="center">
         {chat?.messages?.map((message) => (
-          <div className="message own" key={message.createAt}>
+          <div className={message.senderId === currentUser?.id ? "message own"  : "message"} key={message.createAt}>
             <div className="texts">
               {message.img && (
                 <img
@@ -130,12 +131,12 @@ const Chat = () => {
             </div>
           </div>
         ))}
-        <div className="message own">
+        {img.url &&( <div className="message own">
           <div className="texts">
-            {img.url && <img src={img.url} alt="" />}
-            
+            <img src={img.url} alt="" />
           </div>
         </div>
+        )}
         <div ref={endRef}></div>
       </div>
       <div className="bottom">
@@ -152,6 +153,7 @@ const Chat = () => {
           placeholder="Type a message..."
           value={text}
           onChange={(e) => setText(e.target.value)}
+          disabled={ isCurrentUserBlocked || isRecieverBlocked }
         />
         <div className="emoji">
           <img
@@ -165,7 +167,7 @@ const Chat = () => {
             </div>
           )}
         </div>
-        <button className="sendButton" onClick={handleSend}>
+        <button className="sendButton" onClick={handleSend} disabled={ isCurrentUserBlocked || isRecieverBlocked }>
           Send
         </button>
       </div>
