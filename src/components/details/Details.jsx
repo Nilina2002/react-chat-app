@@ -1,26 +1,35 @@
-import React from "react";
-import "./details.css";
-import { auth } from "../../lib/firebase";
+import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { useChatStore } from "../../lib/chatStore";
+import { auth, db } from "../../lib/firebase";
 import { useUserStore } from "../../lib/userStore";
-import { updateDoc } from "@firebase/firestore";
+import "./details.css";
 
-const Detail = () => {
-  const {chatId, user, isCurrentUserBlocked, isRecievedBlocked, changeBlock} = useChatStore();
-  const {currentUser} = useUserStore();
-  const handleBlock = async() => {
-    if(!user) return;
+const Details = () => {
+  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, changeBlock, resetChat } =
+    useChatStore();
+  const { currentUser } = useUserStore();
+
+  const handleBlock = async () => {
+    if (!user) return;
+
     const userDocRef = doc(db, "users", currentUser.id);
+
     try {
       await updateDoc(userDocRef, {
-        blocked: isRecievedBlocked ? arrayRemove(user.id) : arrayUnion(user.id)
-        
-    });
-    changeBlock();
-    } catch (error) {
-      console.log(error);
+        blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
+      });
+      changeBlock();
+    } catch (err) {
+      console.log(err);
     }
-  }
+  };
+
+  const handleLogout = () => {
+    auth.signOut();
+    resetChat()
+  };
+
+
 
   return (
     <div className="detail">
@@ -102,13 +111,20 @@ const Detail = () => {
             <img src="./arrowUp.png" alt="" />
           </div>
         </div>
-        <button onClick={handleBlock}>{isCurrentUserBlocked ? "User unavailable" : isRecievedBlocked?"User Blocked" : "Block User"}</button>
-        <button className="logout" onClick={() => auth.signOut()}>
-          Log Out
+        <button onClick={handleBlock}>
+          
+          {isCurrentUserBlocked
+            ? "You are Blocked!"
+            : isReceiverBlocked
+            ? "User blocked"
+            : "Block User"}
+        </button>
+        <button className="logout" onClick={handleLogout}>
+          Logout
         </button>
       </div>
     </div>
   );
 };
 
-export default Detail;
+export default Details;
