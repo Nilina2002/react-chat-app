@@ -5,6 +5,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, getDoc } from "firebase/firesto
 import { db } from "../../lib/firebase";
 import { useUserStore } from "../../lib/userStore";
 import { useChatStore } from "../../lib/chatStore";
+import upload from "../../lib/upload";
 
 const Chat = () => {
   const [chat, setChat] = useState();
@@ -57,7 +58,7 @@ const Chat = () => {
 
     try {
       if (img.file) {
-        imgUrl = await upload (img.file);
+        imgUrl = await upload(img.file);
       }
       await updateDoc(doc(db, "chats", chatId), {
         messages: arrayUnion({
@@ -120,14 +121,9 @@ const Chat = () => {
         {chat?.messages?.map((message) => (
           <div className={message.senderId === currentUser?.id ? "message own"  : "message"} key={message.createAt}>
             <div className="texts">
-              {message.img && (
-                <img
-                  src="https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg"
-                  alt=""
-                />
-              )}
+              {message.img && <img src={message.img} alt="" />}
               <p>{message.text}</p>
-              {/* <span>{message.createdAt}</span> */}
+              {/* <span>{format(message.createdAt.toDate())}</span> */}
             </div>
           </div>
         ))}
